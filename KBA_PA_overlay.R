@@ -1,4 +1,4 @@
-```{r}
+
 # overlap pa-kba calculator v1.  26/06/2016
 # this copy used for 2018 analysis
 # Maria Dias/BirdLife International maria.dias@birdlife.org
@@ -86,7 +86,9 @@ levels(pas$ISO3)[levels(pas$ISO3)=='XKO'] <- 'SRB'
 levels(pas$ISO3)[levels(pas$ISO3)=='XNC'] <- 'CYP'
 
 ##############################  custom functions
-lu=function (x=x) length(unique(x))
+lu=function (x=x){ 
+  length(unique(x)) 
+}
 ####################################
 
 kbas$ISO3=as.character(kbas$ISO3)
@@ -664,4 +666,4 @@ tail(tab2export)
 write.csv(tab2export,tfname, row.names=F)
 }
 
-```
+
