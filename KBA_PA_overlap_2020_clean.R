@@ -15,42 +15,44 @@
 # it might occur an error preventing to calculate which kbas overlap with protected area. These situations are easily identifiable in the final csv file (filter by ovl=9999)
 
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+############# Part 1 - Setup #######################
 
-#### 01. install and load packages ----
+
+#### Part 1.1 install and load packages ----
 kpacks <- c('sf', 'dplyr','tidyverse', 'lwgeom')  ### install automatically the relevant packages
 new.packs <- kpacks[!(kpacks %in% installed.packages()[,"Package"])]
 if(length(new.packs)) install.packages(new.packs)
 lapply(kpacks, require, character.only=T)
 remove(kpacks, new.packs)
 
-#### 01.2 Define functions ----
+#### Define functions ----
 lu <- function (x = x){
   length(unique(x))
   #nrow(unique(x))
 }
 
-#### 02. set file locations and working directories ----
+#### 1.2 set file locations and working directories ----
 
 ## NB.in the KBA layer attribute table, the relevant fields should be "SitRecID" and "Country", not in capitals!
-#memory.limit(size=50000)
+## TODO set folder to be your working directory, and finfolder to where you want to save the output of kba-pa overlap for each country
 
 year_run <- format(Sys.Date(), "%Y")
 
-folder <- ("C:/Users/Ashley.Simkins/Documents/SDG/KBA-PA overlap/KBA_PA_Overlap_rewritten")  ## set the working directory
-finfolder <- paste("C:/Users/Ashley.Simkins/Documents/SDG/KBA-PA overlap/KBA_PA_Overlap_rewritten/files_country", year_run, sep="_") #folder where the files per country will be saved
+folder <- ("C:/Users/Ashley.Simkins/OneDrive - BirdLife International/Documents/SDG/KBA-PA overlap/KBA_PA_Overlap_rewritten")  ## set the working directory
+finfolder <- paste("C:/Users/Ashley.Simkins/OneDrive - BirdLife International/Documents/SDG/KBA-PA overlap/KBA_PA_Overlap_rewritten/files_country", year_run, sep="_") #folder where the files per country will be saved
 setwd(folder)
 
 tabmf <- read.csv(paste("classif_KBAs_FINAL_", year_run, ".csv", sep = ""))   ## file with types of kbas
 isos <- read.csv(paste("Iso_countries_", year_run, ".csv", sep = ""))            ## file with ISO codes; should be stored in the wkfolder specified above; no changes in 2019, so 2018 file used
 
-#### 03. Read in shapefiles ----
+#### 1.3 Read in shapefiles ----
 
-kbas <- st_read(dsn = '../../../KBA/KBAsGlobal_2019_September_02', layer = 'KbaGlobal_2019_September_02_POL', stringsAsFactors = F) #note field called Shape not geometry
+kbas <- st_read(dsn = '../../../../../Documents/KBA/KBAsGlobal_2019_September_02', layer = 'KbaGlobal_2019_September_02_POL', stringsAsFactors = F) #note field called Shape not geometry
 #kbas<-st_read(dsn = '.', layer = 'KBAs_for_2019_SDG', stringsAsFactors = F, geometry_column = T)
 kbas <- kbas[!is.na(kbas$SitRecID),] #remove any NAs
 
 #pas<- st_read(dsn = 'WDPA_Dec2018_SDGs.gdb', layer = 'WDPA_Dec_2018_Merge', stringsAsFactors=F) 
-pas <- st_read(dsn = '../../../Protected Areas/wdpa_nov2019/wdpa_for_birdlife/wdpa_poly_nov2019_sdg_prep.gdb', layer = 'wdpa_poly_nov2019_sdg_prep', stringsAsFactors = F) 
+pas <- st_read(dsn = '../../../../../Documents/Protected Areas/wdpa_nov2019/wdpa_for_birdlife/wdpa_poly_nov2019_sdg_prep.gdb', layer = 'wdpa_poly_nov2019_sdg_prep', stringsAsFactors = F) 
 
 #### TODO: CHECK GEOMETRY TYPES - continue from here: https://github.com/r-spatial/sf/issues/427
 pas <- pas[!is.na(st_dimension(pas)),]
@@ -68,7 +70,7 @@ str(pas)
 
 
 #########################################################################
-#### SECTION 1 - DATA CLEANING ----
+#### Part 2 - DATA CLEANING ----
 #########################################################################
 
 ## only need to run the following lines until the ISO3 in the kba layer is corrected - 
@@ -76,20 +78,7 @@ str(pas)
 ## Otherwise these #bas are excluded because the ISO3 in the two layers don't match. 
 ## When the ISO3 in the kba layer is corrected, these lines should be deleted.
 
-#### 1.01 - fixing issues in ISO codes ----
-## TODO: Replace this section with code matching ISO codes from the tabmf table.
-
-# levels(pas$ISO3)[levels(pas$ISO3)=='ALA'] <- 'FIN'
-# levels(pas$ISO3)[levels(pas$ISO3)=='ASC'] <- 'SHN'
-# levels(pas$ISO3)[levels(pas$ISO3)=='CPT'] <- 'FRA'
-# levels(pas$ISO3)[levels(pas$ISO3)=='GGY'] <- 'GBR'
-# levels(pas$ISO3)[levels(pas$ISO3)=='IMN'] <- 'GBR'
-# levels(pas$ISO3)[levels(pas$ISO3)=='JEY'] <- 'GBR'
-# levels(pas$ISO3)[levels(pas$ISO3)=='TAA'] <- 'SHN'
-# levels(pas$ISO3)[levels(pas$ISO3)=='WAK'] <- 'UMI'
-# levels(pas$ISO3)[levels(pas$ISO3)=='XAD'] <- 'CYP'
-# levels(pas$ISO3)[levels(pas$ISO3)=='XKO'] <- 'SRB'
-# levels(pas$ISO3)[levels(pas$ISO3)=='XNC'] <- 'CYP'
+#### 2.1 - fixing issues in ISO codes ----
 
 pas$ISO3[(pas$ISO3)=='ALA'] <- 'FIN'
 pas$ISO3[(pas$ISO3)=='ASC'] <- 'SHN'
@@ -105,7 +94,7 @@ pas$ISO3[(pas$ISO3)=='XNC'] <- 'CYP'
 
 unassigned_pas <- pas[pas$ISO3 == " " | is.na(pas$ISO3) | pas$ISO3 == '---',]
 
-#### 1.02 - KBAs with no ISO code ----
+#### 2.2 - KBAs with no ISO code ----
 unique(kbas$ISO3)
 unique(kbas$Country[kbas$ISO3 == "---"])
 kbas$ISO3[kbas$ISO3 == "---" & kbas$Country == "High Seas"] <- "ABNJ"
@@ -145,7 +134,7 @@ unassigned_kbas <- kbas[kbas$ISO3 == " " | is.na(kbas$ISO3) | kbas$ISO3 == '---'
 kbas_without_names <- kbas[kbas$Country == " ",] #checks if any KBAs are missing country names, should be 0, if not find out which sites are missing country names and add in country name
 
 
-#### 1.03 Transboundary PAs ----
+#### 2.3 Transboundary PAs ----
 cnpa <- data.frame(ISO3 = unique(pas$ISO3))
 cnpa$nchart <- nchar(as.character(cnpa$ISO3))
 cnpa <- cnpa[cnpa$nchart>4, ] #where iso3 codes have more than 4 characters (more than one country per site)
@@ -167,7 +156,7 @@ for (g in 1:nrow(cnpa)){ #this loop checks each transboundary pa and splits the 
 }
 transb
 
-#### 1.04 - list of countries ----
+#### 2.4 - create list of countries ----
 # DgProjw <- CRS(proj4string(kbas)) #checks coordinate system - DEPRECATED in sf
 kbas #check that in the console output: proj4string:    +proj=longlat +datum=WGS84 +no_defs
 
@@ -181,7 +170,7 @@ lu(listcnts)
 #lu(listcnts)
 
 #########################################################################
-#### SECTION 2 - SPATIAL ANALYSIS ----
+#### Part 3 - SPATIAL ANALYSIS ----
 #########################################################################
 
 
@@ -224,8 +213,7 @@ for (x in 1:length(listcnts)){ #starts loop for all countries
     axis(2)
   }
   
-  ### TODO get rid of this bit when we've added in some preliminary analysis to 
-  ## REMOVE ALL COUNTRIES WITH NO PAs.
+  ### could refine by removing this bit when we've added in some preliminary analysis to REMOVE ALL COUNTRIES WITH NO PAs.
   nrow(pa.c) ## number of PAs in the country
   if (nrow(pa.c) == 0){ #finds all kbas with no protected area overlap - sets all output to 0 (0 overlap, no. of pas it overlaps with are 0, etc)
     areasov <- data.frame(SitRecID = kba.c$SitRecID, kba = NA, ovl = 0, year = 0, random = F, nPAs = 0, percPA = 0, ISO = country, COUNTRY = country.n) 
@@ -234,7 +222,7 @@ for (x in 1:length(listcnts)){ #starts loop for all countries
     # areasov <- data.frame(SitRecID = kba.c$SitRecID, kba = st_area(kba.c$Shape), ovl = 0, year = 0, nPAs = 0, percPA = 0, ISO = country, COUNTRY = country.n) #try to set KBA area even if no overlap
   #}
   
-  ## TODO: this will then no longer need an if statement.
+  ## this may then no longer need an if statement.
   if (nrow(pa.c) > 0){
     ovkba <- NULL
     ovkba <- st_intersects(pa.c$Shape, kba.c$geometry, sparse = FALSE)
@@ -424,11 +412,11 @@ lu(finaltab$x) #not sure what suppposed to do
 
 finaltab <- unique(finaltab)
 
-write.csv(finaltab, "finaltab_2020.csv", row.names = F)
+write.csv(finaltab, paste("finaltab_", year_run, ".csv", sep=""), row.names = F)
 ### end here
 
 #########################################################################################
-########## SECITON 3 - PRODUCE SEPARATE FILES FOR EACH REGION ###########################
+########## Part 4 - PRODUCE SEPARATE FILES FOR EACH REGION ###########################
 #########################################################################################
 
 
@@ -442,7 +430,7 @@ if (isofiles){
   }
 }
 
-#write.csv(final1, "finaltab_2020.csv", row.names = F) #only run if didn't run finaltab writing above (i.e. if compiling all countries later)
+write.csv(final1, paste("finaltab_", year_run, ".csv", sep=""), row.names = F) #only run if didn't run finaltab writing above (i.e. if compiling all countries later)
 
 lu(final1$ISO)
 
@@ -452,7 +440,7 @@ if (isofiles == F){
 
 ##### CAN RESTART FROM HERE
 
-final1 <- read_csv("finaltab_2020.csv") # only run if not already loaded in (i.e. if final1 doesn't exist)
+final1 <- read_csv(paste("finaltab_", year_run, ".csv", sep="")) # only run if not already loaded in (i.e. if final1 doesn't exist)
 final <- final1[!is.na(final1$ovl),]
 lu(final1$SitRecID) - lu(final$SitRecID) # number of KBAs with problems of geometry
 
@@ -530,6 +518,12 @@ for (row in 1:nrow(inout)){ #loop through to generate the required input and out
 }
 
 write.csv(inout, paste("in_out_files", format(Sys.Date(), "_%Y"), '.csv', sep=""), row.names = F) #write in_out file to csv so that it can be used for the randomisation analyses
+
+
+#create an input folder in which to store the kba-pa overlap for each regional grouping, to be used as an input in the randomisation code
+if (!(file.exists(paste(folder, "/input tables ", year_run, sep = "")))){ #create graphs folder
+  dir.create(paste(folder, "/input tables ", year_run, sep = ""))
+}
 
 
 for (f in 1:length(fields)){

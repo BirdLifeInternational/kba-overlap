@@ -16,10 +16,11 @@
 
 
 #### Part 1 - Read in input files and define functions #################
+#TODO update wd to where you stored the Input data for R... files
 year_run <- format(Sys.Date(), "%Y")
 
 setwd (paste("C:/Users/Ashley.Simkins/Documents/SDG/KBA-PA overlap/KBA_PA_Overlap_rewritten/input tables", year_run))
-workd <- paste("C:/Users/Ashley.Simkins/Documents/SDG/KBA-PA overlap/KBA_PA_Overlap_rewritten/input tables", year_run)
+#workd <- paste("C:/Users/Ashley.Simkins/Documents/SDG/KBA-PA overlap/KBA_PA_Overlap_rewritten/input tables", year_run)
 
 inout <- read.csv(paste("../in_out_files_", year_run, ".csv", sep = ""))
 tabmf <- read.csv("../classif_kbas_FINAL_2020.csv")
@@ -87,7 +88,7 @@ stattotp <-function(x, y, id) {
 }
 
 
-# cummulative average percentage of IBAs that are protected
+# cummulative mean percentage of IBAs that are protected
 # where x = protected and y = year and id = siteid
 statavep <-function(x, y, id) {
   #yrs = seq(1900, 2016, by = 1)
@@ -146,7 +147,7 @@ calcvals = function(x,y) {
 calcvals2 = function(x,y) {
   res <- matrix(data = NA, j, length(yrs))
   for (i in 1:j) {
-    res[i,] <- statavep(x, y[,i], rownames(y)) #average coverage
+    res[i,] <- statavep(x, y[,i], rownames(y)) #mean coverage
     print(i)
     print(j)
   }

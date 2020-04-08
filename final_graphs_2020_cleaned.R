@@ -1,10 +1,15 @@
 ### Code to generate PDF and PNG outputs of the kba-protected area overlaps for each regional grouping
 
-#set working directory
-folder <- "C:/Users/Ashley.Simkins/Documents/SDG/KBA-PA overlap/KBA_PA_Overlap_rewritten/input tables 2019"
-setwd(folder)
+
+## Part 1 - set working directory, produce folders for output graphs, and specify what to produce
 
 year_run <- format(Sys.Date(), "%Y") #get the current year
+
+#TODO set working directory
+folder <- paste("C:/Users/Ashley.Simkins/Documents/SDG/KBA-PA overlap/KBA_PA_Overlap_rewritten/input tables ", year_run, sep="")
+setwd(folder)
+
+
 
 
 #create main folder in which to store the output graphs
@@ -23,12 +28,15 @@ lu <- function (x = x){
 
 cname <- "KBAs" #define for use in filenames later           
 
-pdf_run <- F #make PDF graphs
+#TODO - set pdf_run to true (T) if want to produce pdf outputs of the graphs, likewise for pngs, if you don't want to produce them, set them to false (F)
+pdf_run <- T #make PDF graphs
 png_run <- T #make PNG graphs
 
 fls <- dir(pattern = "Output data for ") #only selects the randomisation output files in the folder
 fls
 length(fls)
+
+## Part 2 - produce graphs for each regional grouping, system combination for total number of KBAs that are fully covered by protected areas and the avearge KBA coverage by protected areas per regional grouping
 
 for (w in 1:length(fls)){ #for all data
 #for (w in 56:length(fls)) #for just world bank data
@@ -102,47 +110,39 @@ for (w in 1:length(fls)){ #for all data
     
     
     
-    ###### produce single graph with all countries - not sure we actually have ever used this?
-    # if (length(cts) > 1){
-    # 
-    #   if (png_run){
-    #     pngallname <- paste(finfolder, "/", sset,"/", desc, "/", nfile, cname, " all plots ", desc, "_", sset, ".png", sep = "")
-    #     pngallname
-    #     png(file = pngallname, width = 12, height = 10, units = "in", res = 600)
-    #   }
-    # 
-    #   if (pdf_run){
-    #     pdfallname <- paste(finfolder, "/", sset,"/", desc, "/", nfile, cname, " all plots ", desc, "_", sset, ".pdf", sep = "")
-    #     pdfallname
-    #     pdf(file = pdfallname, width = 12, height = 10)
-    #   }
-    # 
-    #   par(las = 1, cex.axis = 1.2, cex.lab = 1.3, cex.main = 1.5, mar = c(5,5,4,2), mgp = c(3.5, 1, 0))
-    # 
-    #   for (i in 1:length(cts)){
-    #     #i=1
-    #     #i=which(cts=="CAF")
-    #     ct1 <- as.character(cts[i])
-    #     ct1
-    #     tabi <- tab[tab$region == ct1,]
-    #     head(tabi)
-    # 
-    #     basy <- 0
-    #     topy <- 100
-    #     baseyr <- 1980
-    #     if (max(tabi$qn95) < 20){
-    #       topy <- 50
-    #     }
-    # 
-    #     par(las = 1, cex.axis = 1.2, cex.lab = 1.3, cex.main = 1.5, mar = c(5,5,4,2), mgp = c(3.5, 1, 0))
-    # 
-    #     with(tabi,plot(year, mid, ylim = c(basy,topy), xlim = c(baseyr, max(year) + 1), type = "n", xlab = "Year", ylab = lbgr, yaxt = "n", main = ct1))
-    #     axis(2, seq(basy, topy, by = (topy - basy)/5))
-    #     with(tabi, polygon(c(year, rev(year)), c(qn05, rev(qn95)), col = cinz, border = cinz))
-    #     with(tabi, lines(year, mid, col = 2, lwd = 2))
-    #   }
-    #   dev.off()
-    # } #end loop one graph for all countries
+    ##### produce single PDF with graphs for all countries/regions
+    if ((length(cts) > 1) & pdf_run){
+
+      pdfallname <- paste(finfolder, "/", sset,"/", desc, "/", nfile, cname, " all plots ", desc, "_", sset, ".pdf", sep = "")
+      pdfallname
+      pdf(file = pdfallname, width = 12, height = 10)
+
+      par(las = 1, cex.axis = 1.2, cex.lab = 1.3, cex.main = 1.5, mar = c(5,5,4,2), mgp = c(3.5, 1, 0))
+
+      for (i in 1:length(cts)){
+        #i=1
+        #i=which(cts=="CAF")
+        ct1 <- as.character(cts[i])
+        ct1
+        tabi <- tab[tab$region == ct1,]
+        head(tabi)
+
+        basy <- 0
+        topy <- 100
+        baseyr <- 1980
+        if (max(tabi$qn95) < 20){
+          topy <- 50
+        }
+
+        par(las = 1, cex.axis = 1.2, cex.lab = 1.3, cex.main = 1.5, mar = c(5,5,4,2), mgp = c(3.5, 1, 0))
+
+        with(tabi,plot(year, mid, ylim = c(basy,topy), xlim = c(baseyr, max(year) + 1), type = "n", xlab = "Year", ylab = lbgr, yaxt = "n", main = ct1))
+        axis(2, seq(basy, topy, by = (topy - basy)/5))
+        with(tabi, polygon(c(year, rev(year)), c(qn05, rev(qn95)), col = cinz, border = cinz))
+        with(tabi, lines(year, mid, col = 2, lwd = 2))
+      }
+      dev.off()
+    } #end loop one pdf for all countries
     
     #### one graph per country
     
@@ -161,22 +161,31 @@ for (w in 1:length(fls)){ #for all data
         png1name <- paste(finfolder, "/", sset,"/", desc, "/", nfile, cname, "_", ct1, "_", sset, ".png", sep = "")
         png1name
         png(file <- png1name, width = 12, height = 10, units = "in", res = 600)
+        
+        par(las = 1,cex.axis = 1.2, cex.lab = 1.3, cex.main = 1.5, mar = c(5,5,4,2), mgp = c(3.5, 1, 0))
+        with(tabi,plot(year,mid, ylim = c(basy,topy), xlim = c(baseyr, max(year) + 1), type = "n", xlab = "Year", ylab = lbgr, yaxt = "n"))
+        axis(2, seq(basy, topy, by = (topy - basy)/5))
+        with(tabi, polygon(c(year, rev(year)), c(qn05, rev(qn95)), col = cinz, border = cinz))
+        with(tabi, lines(year, mid, col = 2, lwd = 2))
+        dev.off()
       }
       
       if (pdf_run){
         pdf1name <- paste(finfolder, "/", sset,"/", desc, "/", nfile, cname, "_", ct1, "_", sset, ".pdf", sep = "")
         pdf1name
         pdf(file <- pdf1name, width = 12, height = 10)
+        
+        par(las = 1,cex.axis = 1.2, cex.lab = 1.3, cex.main = 1.5, mar = c(5,5,4,2), mgp = c(3.5, 1, 0))
+        with(tabi,plot(year,mid, ylim = c(basy,topy), xlim = c(baseyr, max(year) + 1), type = "n", xlab = "Year", ylab = lbgr, yaxt = "n"))
+        axis(2, seq(basy, topy, by = (topy - basy)/5))
+        with(tabi, polygon(c(year, rev(year)), c(qn05, rev(qn95)), col = cinz, border = cinz))
+        with(tabi, lines(year, mid, col = 2, lwd = 2))
+        dev.off()
       }
       
-      par(las = 1,cex.axis = 1.2, cex.lab = 1.3, cex.main = 1.5, mar = c(5,5,4,2), mgp = c(3.5, 1, 0))
-      
-      with(tabi,plot(year,mid, ylim = c(basy,topy), xlim = c(baseyr, max(year) + 1), type = "n", xlab = "Year", ylab = lbgr, yaxt = "n"))
-      axis(2, seq(basy, topy, by = (topy - basy)/5))
-      
-      with(tabi, polygon(c(year, rev(year)), c(qn05, rev(qn95)), col = cinz, border = cinz))
-      with(tabi, lines(year, mid, col = 2, lwd = 2))
-      dev.off()
+      # if (!is.null(dev.list())){
+      #   dev.off()
+      # }
     }
     
     if (length(cts) > 0){
@@ -198,22 +207,31 @@ for (w in 1:length(fls)){ #for all data
           png1name  <- paste(finfolder, "/", sset, "/", desc, "/", nfile, cname, "_", ct1, "_", sset, ".png", sep = "")
           png1name
           png(file = png1name, width = 12, height = 10, units = "in", res = 600)
+          
+          par(las = 1,cex.axis = 1.2, cex.lab = 1.3, cex.main = 1.5, mar = c(5,5,4,2), mgp = c(3.5, 1, 0))
+          with(tabi,plot(year, mid, ylim = c(basy, topy), xlim = c(baseyr, max(year) + 1), type = "n", xlab = "Year", ylab = lbgr, yaxt = "n"))
+          axis(2, seq(basy, topy, by = (topy - basy)/5))
+          with(tabi, polygon(c(year, rev(year)), c(qn05, rev(qn95)), col = cinz, border = cinz))
+          with(tabi, lines(year, mid, col = 2, lwd = 2))
+          dev.off()
         }
         
         if (pdf_run){
           pdf1name <- paste(finfolder, "/", sset, "/", desc, "/", nfile, cname, "_", ct1, "_", sset, ".pdf", sep = "")
           pdf1name
           pdf(file = pdf1name, width = 12, height = 10)
+          
+          par(las = 1,cex.axis = 1.2, cex.lab = 1.3, cex.main = 1.5, mar = c(5,5,4,2), mgp = c(3.5, 1, 0))
+          with(tabi,plot(year, mid, ylim = c(basy, topy), xlim = c(baseyr, max(year) + 1), type = "n", xlab = "Year", ylab = lbgr, yaxt = "n"))
+          axis(2, seq(basy, topy, by = (topy - basy)/5))
+          with(tabi, polygon(c(year, rev(year)), c(qn05, rev(qn95)), col = cinz, border = cinz))
+          with(tabi, lines(year, mid, col = 2, lwd = 2))
+          dev.off()
         }
         
-        par(las = 1,cex.axis = 1.2, cex.lab = 1.3, cex.main = 1.5, mar = c(5,5,4,2), mgp = c(3.5, 1, 0))
-        
-        with(tabi,plot(year, mid, ylim = c(basy, topy), xlim = c(baseyr, max(year) + 1), type = "n", xlab = "Year", ylab = lbgr, yaxt = "n"))
-        axis(2, seq(basy, topy, by = (topy - basy)/5))
-        
-        with(tabi, polygon(c(year, rev(year)), c(qn05, rev(qn95)), col = cinz, border = cinz))
-        with(tabi, lines(year, mid, col = 2, lwd = 2))
-        dev.off()
+        # if (!is.null(dev.list())){
+        #   dev.off()
+        # }
       }
     } # ends loop one graph per country
   } # ends loop varis
@@ -221,7 +239,7 @@ for (w in 1:length(fls)){ #for all data
 
 
 
-## create single file for outputs
+## Part 3 - create single file for outputs
 
 fls <- dir(pattern = "Output data for ")
 fls
@@ -258,7 +276,7 @@ for (g in 1:length(subsets)){
   #g=1
   sset <- subsets[g]
   
-  nffile <- paste("PA coverage ", sset, " KBAs by country  region.csv")
+  nffile <- paste("PA coverage ", sset, " KBAs by country region ", year_run, ".csv", sep="")
   nffile
   fin2 <- fin1[fin1$sset == sset,]
   nrow(fin2)
