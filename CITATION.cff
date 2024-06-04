@@ -1,0 +1,35 @@
+# This CITATION.cff file was generated with cffinit.
+# Visit https://bit.ly/cffinit to generate yours today!
+
+cff-version: 1.2.0
+title: >-
+  Code and documentation for calculating the PA and OECM
+  coverage of Key Biodiversity Areas.
+message: >-
+  If you use this software, please cite it using the
+  metadata from this file.
+type: software
+authors:
+  - name: BirdLife International
+    address: '1st Floor, David Attenborough Building Pembroke Street'
+    city: Cambridge
+    post-code: CB2 3QZ
+    date-end: '2024-05-30'
+repository-code: 'https://github.com/BirdLifeInternational/kba-overlap'
+abstract: >-
+  Code and documentation to complete spatial overlap of Key
+  Biodiversity Areas (KBAs) with Protected Areas and Other
+  effective area-based conservation measures (OECMs) to
+  assess coverage of KBAs over time. These data are used in
+  both the IBAT country profiles
+  (https://www.ibat-alliance.org/) and for reporting of
+  indicators 14.5.1, 15.1.2 and 15.4.1 of the UN Sustainable
+  Development Goals. 
+keywords:
+  - Key Biodiversity Areas
+  - Protected Areas
+  - OECMs
+  - Sustainable development goals
+license: LGPL-3.0
+version: '3.0'
+date-released: '2024-05-30'
