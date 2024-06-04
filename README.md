@@ -1,5 +1,7 @@
 ## kba-overlap
 
+This branch of the kba-overlap resository is no longer maintained. This contains the previous version and formatting of this code, see master for the current versions. 
+
 This repository contains the code to calculate the 3 of the SDG Indicators related to protected area coverage of KBAs split into marine, terrestrial, freshwater and mountain KBAs. 
 
 This repository contains 3 scripts that form part of the analyses: 
