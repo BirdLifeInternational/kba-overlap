@@ -12,8 +12,8 @@
 
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 #### 1. Initial set up and data loading/cleaning ----
-##TODO: Set working directory and year run (to be used for file and folder naming later on) 
-folder <- "C:/Users/Tom.Scott/OneDrive - BirdLife International/Sites/KBA_PA_Overlap_Revamp/FullTest - Global/"
+##TODO: Set folder as working directory and year run (to be used for file and folder naming later on) 
+folder <- ""
 setwd(folder)
 year_run <- format(Sys.Date(), "%Y")
 
@@ -27,15 +27,15 @@ load_packages()
 build_directory()
 
 ##TODO: Read in all premade tabular datasets (see documentation) - add in names of respective files below 
-tabmf <- read.csv("RawInput/classif_kbas_final_end2023.csv") #table containing classifications of terrestrial, marine, mountain and freshwater kbas
-isos <- read.csv("RawInput/Iso_countries_SDG_2023.csv") #iso table
-notassessed <- read.csv("RawInput/notassessedfinal.csv") #table of point sites structured to reflect pa_coverage_per_kba output file 
-siteclass <- read.csv("RawInput/site_programmes.csv") #table of IBA/KBA/AZE status for IBAT output 
+tabmf <- read.csv("RawInput/") #table containing classifications of terrestrial, marine, mountain and freshwater kbas
+isos <- read.csv("RawInput/") #iso table
+notassessed <- read.csv("RawInput/") #table of point sites structured to reflect pa_coverage_per_kba output file 
+siteclass <- read.csv("RawInput/") #table of IBA/KBA/AZE status for IBAT output 
 
 #### 2. Spatial analysis ----
 ##TODO: Read in all premade spatial datasets.
-kbas <- st_read('RawInput/KBAsGlobal_2023_September_02_POL.shp', stringsAsFactors = F) #kba layer
-pas <- st_read('RawInput/Data_for_BirdLife.gdb/', layer = 'WDPA_WDOECM_poly_Oct2023_SDG_input_selection', stringsAsFactors = F) #pa layer
+kbas <- st_read('RawInput/', stringsAsFactors = F) #kba layer
+pas <- st_read('RawInput/', layer = '', stringsAsFactors = F) #pa layer
 
 ##Clean kbas
 kba_clean()
@@ -111,7 +111,7 @@ summary_per_country()
 year_run <- as.numeric(format(Sys.Date(), "%Y")) - 1  #Setting year_run but behind one, this part is typically done a couple of months after the above and thus the year needs to match that of when the previous work was done
 isos <- read.csv("RawInput/") #read in iso table
 inout_full <- read.csv(paste("in_out_files", year_run, '.csv', sep=""))
-reg_grp <- read.csv("RawInput/regional_groupings_2023.csv",check.names = FALSE) #table containing regional groups for SDG reporting 
+reg_grp <- read.csv("RawInput/",check.names = FALSE) #TODO read in table containing regional groups for SDG reporting 
 
 ##Re-scaling results 
 rescale_results()
