@@ -48,7 +48,8 @@ build_directory <- function(){
 kba_clean <- function(){
   kbas <- st_make_valid(kbas) #repair any geometry issues
   
-  kbas$ISO3[kbas$ISO3 == "---" & kbas$Country == "High Seas"] <- "ABNJ" #Add high seas ISO code
+  if(nrow(filter(kbas, ISO3 == "---" & Country == "High Seas"))){
+  kbas$ISO3[kbas$ISO3 == "---" & kbas$Country == "High Seas"] <- "ABNJ" } #Add high seas ISO code
   
   kbas <- kbas[!is.na(kbas$SitRecID),] #remove any NAs - should not be needed but just in case
   
@@ -116,7 +117,7 @@ pa_oecm_split <- function(){
     
     pas <- rbind(PAs,OECMs_clip)
     
-    OECMcnts <- unique(OECMs$ISO3) #list of countries for which there are oECMs
+    OECMcnts <- unique(OECMs$ISO3) #list of countries for which there are OECMs
     
     #### 2.6 - define PA/OECM/Combined combinations to use
     OECMs_list <- pas %>% 
@@ -158,6 +159,8 @@ pa_oecm_split <- function(){
     
     rm(All_list)
     cli_alert_success("Step complete, OECM coverage will not be disaggregated from that of PAs.")
+    
+    OECMcnts <- data.frame() #creates empty data frame 
     
   }
   assign("OECMcnts",OECMcnts, envir = .GlobalEnv)
