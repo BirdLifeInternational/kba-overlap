@@ -40,6 +40,11 @@ pas <- st_read('RawInput/', layer = '', stringsAsFactors = F) #pa layer
 ##Clean kbas
 kba_clean()
 
+##Remove pas not included in this analysis for SDG reporting as these often contain potentially unprotected areas
+pas <- filter(pas, 
+              !STATUS %in% c("Proposed","Not Reported"),
+              DESIG_ENG != "UNESCO-MAB Biosphere Reserve")
+
 ##Transboundary pas - assigns to both countries
 transboundary_pas()
 
