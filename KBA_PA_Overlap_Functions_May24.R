@@ -876,7 +876,9 @@ randomisation <- function(){
         ibadat <- ibadat[ibadat$region == "GBR" | ibadat$region == "GGY" | ibadat$region == "IMN" | ibadat$region == "JEY" | ibadat$region == "CHN",] #if using ISO_SDG, only need to run ISOs that differ compared to ISO BL - i.e. Britain and it's near islands (Guernsey, Isle of Man and Jersey), and China and Taiwan
       }
       
-      regs <- unique(ibadat$region)    
+      regs <- unique(ibadat$region)
+
+      regs <- subset(regs, regs != "0") #removing anything not contained within the input file's focal region
 
       regres <- data.frame()
       for (z in 1:length(regs)){
