@@ -63,7 +63,13 @@ complete_overlap()
 rescale_results()
 
 ##Create "in_out_table" and making "input tables" 
-fields <- colnames(select(isos, c("ISO_BL", "ISO_SDG", "SDG_Region", "SDG_Subregion", "LDCs", "LLDCs_SIDs", "Developed_Developing", "ECA", "ECE", "ECLAC", "ESCAP", "ESCWA","Europe_NorthernAmerica_Australia_NewZealand"))) #select relevant columns from ISO table
+fields <- colnames(select(isos, c("ISO_BL", "ISO_SDG", "SDG_Region", "SDG_Subregion", "LDCs", "LLDCs_SIDs", "Developed_Developing", "ECA", "ECE", "ECLAC", "ESCAP", "ESCWA","Europe_NorthernAmerica_Australia_NewZealand",
+                                  "ECA_ALL", "ECA_CA", "ECA_EA", "ECA_NA", "ECA_SA", "ECA_WA", "ECA_AUC", "ECA_ECCAS", "ECA_ECOWAS", "ECA_IGAD", "ECA_SADC", "ECA_AMU", "ECA_CEN_SAD", "ECA_COMESA", "ECA_EAC", "ECA_IE", 
+                                  "ECA_LLC", "ECA_LL_LDC", "ECA_LDC", "ECA_MRC", "ECA_NO_LDC", "ECA_NOP", "ECA_O_LDC", "ECA_OP", "ECA_SAHEL", "ECA_SIS", "ECA_SSA", "ECA_SACU", "ECE_ALL", "ECE_CIS11", "ECE_EECCA", "ECE_EU27",
+                                  "ECE_EU_EuroArea", "ECE_WestBalkans", "ECE_EAEU", "ECLAC_ALL", "ECLAC.LA", "ECLAC_Caribbean", "ESCAP_ALL", "ESCAP_ASEAN", "ESCAP_ENEA", "ESCAP_LDC", "ESCAP_LLDC", "ESCAP_NCA", 
+                                  "ESCAP_PACIFIC", "ESCAP_SEA", "ESCAP_SSWA", "ESCAP_OTHER_AREA", "ESCAP_PIDE", "ESCAP_SAARC", "ESCAP_CSN", "ESCAP_SIDS", "ESCAP_WB_HIGH", "ESCAP_WB_UPPER_MID", "ESCAP_WB_LOWER_MID", "ESCAP_WB_LOW",
+                                  "ESCWA_Arab", "ESCWA_GCC", "ESCWA_MASHREQ", "ESCWA_MAGHREB", "ESCWA_LDC", "ESCWA_CONFLICT", "ESCWA_NOCONFLICT_MID", "ESCWA_ARAB_MID", "ESCWA_ARAB_LOW", "ESCWA_ARAB_HIGH"
+))) #select relevant columns from ISO table - now includes all regions for regional UNSD offices
 fields <- c('global', "country", fields) #adds a global category to the table output, and country is the information from the KBA layer
 build_inout() #creates in out table of all fields above specifying file names - only "ISO_SDG" will be used for IBAT
 
@@ -80,6 +86,7 @@ random_function()
 ##Randomisiation and writing output files - into new output folders - this will only do randomisation for ISO_SDG groupings (country level) which is what is required by IBAT
 inout <- filter(inout_full, code == "ISO_SDG")
 j = 1000 # number of randomisations needed
+sdg_run = F #If false, this produces trends for PAs and OECMs seperately as well as combined values
 randomisation()
 
 #### 4. Summary tables for IBAT and internal reporting ----
@@ -135,6 +142,7 @@ random_function()
 ##Randomisiation and writing output files - into new output folders - this will only do randomisation for ISO_SDG groupings (country level)
 inout <- filter(inout_full, !code %in% c("ISO_SDG","ISO_BL","country"))
 j = 1000 # number of randomisations needed
+sdg_run = T #If false, this produces trends for PAs and OECMs seperately as well as combined values
 randomisation()
 
 #Creating SDG Coverage files

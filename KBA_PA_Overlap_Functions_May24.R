@@ -846,6 +846,10 @@ randomisation <- function(){
     
     ibadat1 <-  read.csv(infile, header = TRUE, sep = ",", quote="\"", dec=".", comment.char="", as.is = TRUE) # read in data
     
+    if (sdg_run){ #if TRUE this retains only values for the combined PA+OECM coverage, these are the only ones required for SDG reporting which saves time here
+      ibadat1 <- filter(ibadat1, WDPA_type == "Protected Areas and OECMs")
+    }
+    
     outputfile1 <- as.character(inout$outputfile1[w])
     
     poolryears <- ibadat1$year[ibadat1$random_year == FALSE & ibadat1$year > 0] #create a list of years that were not randomly assigned, to use if a country has no random years #note this uses ibadat1 as needs to not only look at the system subset, but from the protected areas in the country as a whole
