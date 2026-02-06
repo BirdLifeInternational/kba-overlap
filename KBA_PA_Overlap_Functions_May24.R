@@ -1,6 +1,6 @@
 ##Functions required to complete the Protected Areas/OECMs overlap of Key Biodiversity Areas. 
-#Developed by BirdLife International, May 2024 
-#Version 3.0
+#Developed by BirdLife International, May 2024, additions Feb 2026 for disaggregations on regional commissions 
+#Version 3.1
 #load_packages----
 load_packages <- function(){
   kpacks <- c("sf","tidyverse","lwgeom","lemon","cli")  #List of required packages
@@ -49,7 +49,7 @@ kba_clean <- function(){
   kbas <- st_make_valid(kbas) #repair any geometry issues
   
   if(nrow(filter(kbas, ISO3 == "---" & Country == "High Seas"))){
-  kbas$ISO3[kbas$ISO3 == "---" & kbas$Country == "High Seas"] <- "ABNJ" } #Add high seas ISO code
+    kbas$ISO3[kbas$ISO3 == "---" & kbas$Country == "High Seas"] <- "ABNJ" } #Add high seas ISO code
   
   kbas <- kbas[!is.na(kbas$SitRecID),] #remove any NAs - should not be needed but just in case
   
@@ -65,7 +65,7 @@ kba_clean <- function(){
   
   if(nrow(filter(kbas, is.na(ISO3))) > 0){
     cli_alert_warning(paste("Warning:",nrow(filter(kbas, is.na(ISO3))),"KBAs have been removed from the analysis as they are missing ISO3 codes.\n These sites have the following SitRecIDs:\n",
-                         paste(filter(kbas,is.na(ISO3))$SitRecID, collapse = ", ")))}
+                            paste(filter(kbas,is.na(ISO3))$SitRecID, collapse = ", ")))}
   
   kbas <- kbas[!is.na(kbas$ISO3),] #remove any transboundary
   
@@ -75,7 +75,7 @@ kba_clean <- function(){
   if(length(iso3_not_in_pas)>0){
     cli_alert_warning(paste("Warning: The following ISO3 codes exist within the KBA but not PA layer, as the script uses these codes to select \n potentially overlapping sites, KBAs with these ISO codes will be reported as having 0 coverage:","\n", paste(iso3_not_in_pas, collapse = ", "))) #Print the vector to the console
   }
-    
+  
   assign("kbas",kbas, envir = .GlobalEnv)  
 }
 
@@ -86,21 +86,21 @@ transboundary_pas <- function(){
   cnpa <- cnpa[cnpa$nchart > 4, ] #where iso3 codes have more than 4 characters (more than one country per site)
   transb <- data.frame()
   if(length(cnpa > 0)){
-  for (g in 1:nrow(cnpa)){ #this loop checks each transboundary pa and splits the iso code and only assigns the site to each country
-    #g=2
-    cnpa1 <- cnpa[g, ]
-    sp <- substr(cnpa1$ISO3, 4, 5)
-    if (sp == "; "){
-      cnpa2 <- data.frame(ISO3=strsplit(as.character(cnpa1$ISO3), split="; ")[[1]])
-      cnpa2$oISO3 <- as.character(cnpa1$ISO3)
+    for (g in 1:nrow(cnpa)){ #this loop checks each transboundary pa and splits the iso code and only assigns the site to each country
+      #g=2
+      cnpa1 <- cnpa[g, ]
+      sp <- substr(cnpa1$ISO3, 4, 5)
+      if (sp == "; "){
+        cnpa2 <- data.frame(ISO3=strsplit(as.character(cnpa1$ISO3), split="; ")[[1]])
+        cnpa2$oISO3 <- as.character(cnpa1$ISO3)
+      }
+      if (sp != "; "){
+        cnpa2 <- data.frame(ISO3=strsplit(as.character(cnpa1$ISO3), split=";")[[1]])
+        cnpa2$oISO3 <- as.character(cnpa1$ISO3)
+      }
+      transb <- rbind(transb, cnpa2)
     }
-    if (sp != "; "){
-      cnpa2 <- data.frame(ISO3=strsplit(as.character(cnpa1$ISO3), split=";")[[1]])
-      cnpa2$oISO3 <- as.character(cnpa1$ISO3)
-    }
-    transb <- rbind(transb, cnpa2)
-  }
-  cli_alert_success("Transboundary PAs split successfully.")
+    cli_alert_success("Transboundary PAs split successfully.")
   }else{cli_alert_success("No transboundary PAs found in dataset.")}
   assign("transb", transb, envir = .GlobalEnv)
 }
@@ -734,14 +734,16 @@ random_function <- function(){
   ranyear <- function(x, y, z, zx) {
     out <- as.vector(c())
     for (i in 1:length(y)) {
-      if(zx[i] == F) {
+      #if(zx[i] == F) {
+      if(!isTRUE(zx[i])) { #adding to deal with iterations that have 0 rows 
         out <- append(out, x[i], after = length(out)) #if year designated was not random, send the table straight to the output of the function (don't need to assign a year)
       } else {
-        if(length(as.numeric(x[y == y[i] & zx != TRUE & z > 0])) > 1){
-          out <- append(out, resample(as.numeric(x[y == y[i] & zx != TRUE & z > 0]), 1, replace = T), after = length(out)) #for kbas with random years, if there are more than 1 year reported, use one of these for the overlap year
+        #if(length(as.numeric(x[y == y[i] & zx != TRUE & z > 0])) > 1){
+        if(length(as.numeric(x[y == y[i] & !zx %in% TRUE & z > 0])) > 1){ #adding to deal with iterations that have 0 rows 
+          out <- append(out, resample(as.numeric(x[y == y[i] & !zx %in% TRUE & z > 0]), 1, replace = T), after = length(out)) #for kbas with random years, if there are more than 1 year reported, use one of these for the overlap year
         } else {
           if (glb){
-            out <- append(out, resample(as.numeric(x[y == y & zx != TRUE & z > 0]), 1, replace = T), after = length(out)) #use full protected area designation year list if <2 protected area years reported in the country
+            out <- append(out, resample(as.numeric(x[y == y & !zx %in% TRUE & z > 0]), 1, replace = T), after = length(out)) #use full protected area designation year list if <2 protected area years reported in the country
           } else if (reg){
             out = append(out, resample(poolryears, 1, replace = T), after = length(out))
           }
@@ -828,7 +830,7 @@ random_function <- function(){
 #randomisation ----
 randomisation <- function(){
   for (w in 1:nrow(inout)){ #loops through input files (using file names from inout csv file)
-
+    
     infile = paste("input tables ", year_run,"/",as.character(inout$inputfile[w]), ".csv", sep = "")  #"Input data for R global Region KBAs.csv"
     
     glb = F
@@ -840,7 +842,7 @@ randomisation <- function(){
     assign("glb",glb, envir = .GlobalEnv)
     assign("reg",reg, envir = .GlobalEnv)
     
-
+    
     # NOTE: Outfiles will be overwritten, including those for regions.
     ####################
     
@@ -862,13 +864,13 @@ randomisation <- function(){
         ibadat <- ibadat1
         outfile <- paste(inout$outputfile1[w], "_", sset, ".csv", sep = "")
       }
-
+      
       if (sset != 'all') { 
         kbasi <- tabmf$SitRecID[tabmf[,which(names(tabmf) == sset)] == "Y"]
         ibadat <- ibadat1[ibadat1$siteid %in% kbasi,]
         outfile <- paste(inout$outputfile1[w], "_", sset, ".csv", sep = "")
       }
-
+      
       if (infile == "Input data for R ISO_SDG KBAs.csv" & file.exists(gsub("SDG", "BL", outfile))){ # if running analysis for ISO_SDG, need to check if ISO_BL already run and so output from it already exists
         bl_file_name <- gsub("SDG", "BL", outfile) #create ISO_BL output file name
         iso_bl <- read.csv(paste("input tables ", year_run,"/",bl_file_name, ".csv", sep = "")) #read in ISO_BL output file
@@ -877,14 +879,49 @@ randomisation <- function(){
       }
       
       regs <- unique(ibadat$region)
-
+      
       regs <- subset(regs, regs != "0") #removing anything not contained within the input file's focal region
-
+      
+      if(length(regs) == 0){
+        
+        print(paste0("No KBAs found for subset '",sset,"' in file ",inout$inputfile[w],". Writing a single NA row."))
+        
+        empty_row <- data.frame(
+          year = year_run,
+          CI95lowCount = NA,
+          CI95midCount = NA,
+          CI95hiCount = NA,
+          CI95lowPercentage = NA,
+          CI95midPercentage = NA,
+          CI95hiPercentage = NA,
+          CI95lowPercentage_Area = NA,
+          CI95midPercentage_Area = NA,
+          CI95hiPercentage_Area = NA,
+          region = NA,
+          code = inout$code[w],
+          sset = sset,
+          WDPA_type = "No KBAs available",
+          stringsAsFactors = FALSE
+        )
+        
+        if (glb) {
+          write.csv(empty_row, paste("output tables ", year_run,"/", outfile, sep = ""), row.names = FALSE)
+        }
+        if (reg) {
+          write.table(empty_row, file = paste("output tables ", year_run,"/", outfile, sep = ""),
+                      append = FALSE, quote = TRUE, sep = ",", eol = "\n", na = "NA", dec = ".", row.names = FALSE)
+        }
+        
+        next  #skip to next subset
+        
+      }
+      
+      
       regres <- data.frame()
       for (z in 1:length(regs)){
         #regs[z]
         ibadat2 <- ibadat[ibadat$region == regs[z],]
-
+        
         ### Splitting here also by OECM
         patypes <- unique(ibadat2$WDPA_type)
         res3 <- data.frame()
@@ -897,8 +934,9 @@ randomisation <- function(){
           n <- length(ibadat3$siteid)
           ibaname <- unique(ibadat3$siteid)
           m <-  length(unique(ibadat3$siteid))
+          
           print(paste("Number of KBAs being analysed ", m," with ", n, " sites ",focal_pas,".", sep = ""))
-
+          
           ###############################
           # start data randomization
           ##############################
@@ -959,7 +997,7 @@ randomisation <- function(){
       } #ends loop of regs
       
       if (reg){
-
+        
         if (infile == "Input data for R ISO_SDG KBAs.csv" & exists("iso_bl")){ # if running ISO_SDG data, use data from ISO_BL to save time where ISO code is the same (i.e. for most countries/territories/islands)
           
           iso_bl <- iso_bl[iso_bl$region != "GBR" & iso_bl$region != "GGY" & iso_bl$region != "IMN" & iso_bl$region != "JEY" & iso_bl$region != "CHN",] #remove isos that differ between ISO_BL and ISO_SDG
@@ -1025,7 +1063,7 @@ summary_per_country <- function(){
     
     tab2 <- rbind(tab2, tab)
   }
-
+  
   country_list <- unique(select(ovl, c("region", "country", "WDPA_type")))
   
   country_kba_pa <- merge(tab2, country_list, by.x = c("iso3","WDPA_type"), by.y = c("region","WDPA_type"), all = F)
@@ -1035,7 +1073,7 @@ summary_per_country <- function(){
   
   write.csv(country_kba_pa, "percentage_coverage_by_country_data.csv", row.names = F)
   
-  }
+}
 
 
 #summary_global ----
@@ -1115,20 +1153,20 @@ ibat_fig6_plot <- function(){
   png_run <- T #make PNG graphs
   
   fls <- dir(path = paste("output tables ", year_run,"/",sep = ""),pattern = "Output data for R ISO_SDG KBAs") #only selects the randomisation output files in the folder
-
+  
   for (w in 1:length(fls)){ #for all data
     fl1 <- fls[w]
     
     tab <- read.csv(paste("output tables ", year_run,"/",fl1,sep = "")) #read in input data
-
+    
     sset <- tab$sset[1]
     desc <- tab$code[1]
-
+    
     #check and create folder for that system in which to store graphs
     if (!(file.exists(paste("final graphs ",year_run,"/", sset,"/",desc,  sep = "")))){ #if subfolder does not already exist, create it
       dir.create(file.path(paste("final graphs ",year_run,"/", sset,"/", desc, sep = "")))
     }
-  
+    
     ### Set up graphs
     
     varis <- c("percKBAcov") #removing "% sites completely covered by PAs" figures c("percKBAcov","percKBATot").
@@ -1155,7 +1193,7 @@ ibat_fig6_plot <- function(){
       cinz <- grey(0.7)
       min(tab$qn95 - tab$qn05)
       max(tab$qn95 - tab$qn05)
-
+      
       cts <- unique(tab$region[tab$region != "0"])
       
       ##### produce single PDF with graphs for all countries/regions UPDATED TO GGPLOT2
@@ -1289,7 +1327,7 @@ ibat_fig6_plot <- function(){
                   guides(fill = legendneed))
           dev.off()
         }
-
+        
       }
       
       if (length(cts) > 0){
@@ -1364,7 +1402,7 @@ ibat_fig6_plot <- function(){
                     guides(fill = legendneed))
             dev.off()
           }
-
+          
         }
       } # ends loop one graph per country
     } # ends loop varis
@@ -1398,7 +1436,7 @@ ibat_fig5_dataprep <- function(){
            KbaStatus = 1)
   
   kbaoverlap <- merge(kbaoverlap, siteclass, by = "SitRecID")
-
+  
   kbaoverlap <- kbaoverlap %>% 
     mutate(count = 1)
   
@@ -1924,7 +1962,7 @@ ibat_fig5_legends <- function(){
   KBAISO <- select(kba_class,c("SitRecID","ISO"))
   
   FIG5Cap <- merge(KBAISO,siteclass, by = "SitRecID")
-
+  
   FIG5Cap <- distinct(FIG5Cap, SitRecID, .keep_all = T)
   
   FIG5Cap <- FIG5Cap %>% 
@@ -1990,7 +2028,7 @@ sdg_format_1 <- function(){
   
   fls <- dir(path = paste("output tables ", year_run,"/",sep = ""),pattern = "Output data for")
   
-  fls2 <- fls[grepl("SDG|SDG_Region|SDG_Subregion|Developed_Developing|global|LDC|LLDC_SIDS|Europe_NorthernAmerica_Australia_NewZealand", fls)] #TODO add needed regional groups to this
+  fls2 <- fls[grepl("R SDG|R SDG_Region|R SDG_Subregion|R Developed_Developing|R global|R LDC|R LLDC_SIDS|R Europe_NorthernAmerica_Australia_NewZealand", fls)] #TODO add needed regional groups to this
   #subset to only SDG output files
   
   ## for SDG files needed for reporting:
@@ -2007,7 +2045,7 @@ sdg_format_1 <- function(){
       tab <- tab[tab$region != "Latin America and the Caribbean (MDG=M49)" & tab$region != "Sub-Saharan Africa (M49)",]
     }
     
-
+    
     if (!"region" %in% names(tab)){
       tab$region="Global"
     }
@@ -2050,7 +2088,7 @@ sdg_format_2 <- function(){
   isos <- select(isos, c('countryname', 'ISO_SDG'))
   fls <- dir(path = paste("output tables ", year_run,"/",sep = ""),pattern = "SDG PA coverage") #to read in the tables from the Output folder relevant SDG coverage
   fls <- fls[!grepl("all", fls)] #remove "all"
-
+  
   #read in all dataset and get unique list of regions, so that any regions without data can be added in with 'N' values to indicate no data
   all_regions <- read.csv(paste("output tables ", year_run,"/","SDG PA coverage all KBAs by country region ",year_run,".csv",sep = ""), check.names = F)
   Encoding(all_regions$`Global/region/country`) <- "latin8"
@@ -2196,4 +2234,77 @@ sdg_format_2 <- function(){
       write.csv(tab, paste("output tables ", year_run,"/",'119-15.4.1-2838-ER_PTD_MTN-5654.csv', sep = ""), row.names = F,fileEncoding = 'UTF-8')
     }
   }
+}
+
+#sdg_reg_com ----
+sdg_reg_com <- function(){
+  
+  fls <- dir(path = paste("output tables ", year_run,"/",sep = ""),pattern = "Output data for")
+  
+  fls2 <- fls[grepl("R ESCAP|R ECLAC|R ECE|R ECA|R ESCWA", fls)] #TODO add needed regional groups to this
+  #subset to only SDG output files
+  
+  subsets_reg <- c("terrestrial","marine","Freshwater","mountain") #excluding all as not applicable here
+  
+  for(x in 1:length(subsets_reg)){
+    
+    subset_focal <- subsets_reg[x]
+    
+    fls_focal <- fls2[grepl(paste(subset_focal), fls2)]
+    
+    output <- fls_focal %>%
+      map_dfr(~ read_csv(file.path(paste("output tables ", year_run,"/",sep = ""), .x)), .id = "source_file") %>% 
+      filter(WDPA_type == "Protected Areas and OECMs", year >=2000) %>% 
+      select(c("year","code","CI95midPercentage_Area")) %>%
+      merge(.,reg_com_grp, by.x = "code", by.y = "RC_Region", all.x = T) %>% 
+      rename("Time Period" = "year",
+             "Observation Value" = "CI95midPercentage_Area",
+             'Reference Area Code' = "RC_UNSDCode",
+             'Reference Area Name' = 'RC_RegionName') %>% 
+      mutate(Ref_Area_Type = "2.9 Regional (Regional Commissions)",
+             'Nature of Data' = "C",
+             'Unit of Measurement' = "PERCENT",
+             'Reporting Type' = "G",
+             'Source Detail' = paste('BirdLife International, IUCN and UNEP-WCMC (', (year_run + 1), '). Based on spatial overlap between polygons for Key Biodiversity Areas from the World Database of Key Biodiveristy Areas (www.keybiodiversityareas.org) and polygons for protected areas from the World Database on Protected Areas and (where available) for Other Effective area-based Conservation Measures and from the World Database on OECMs (www.protectedplanet.net)', sep = ""),
+             'Time Detail [optional]' = "",
+             Footnotes = "",
+             'Disaggregation classification' = "")
+    
+    if(subset_focal == "terrestrial"){
+      output <- output %>% 
+        mutate(SeriesCode = "ER_PTD_TERR",
+               SeriesName = "Average proportion of Terrestrial Key Biodiversity Areas (KBAs) covered by protected areas (%)",
+               'Indicator Reference Number' = "15.1.2")
+    }
+    
+    if(subset_focal == "marine"){
+      output <- output %>% 
+        mutate(SeriesCode = "ER_MRN_MPA",
+               SeriesName = "Average proportion of Marine Key Biodiversity Areas (KBAs) covered by protected areas (%)",
+               'Indicator Reference Number' = "14.5.1")
+    }
+    
+    if(subset_focal == "mountain"){
+      output <- output %>% 
+        mutate(SeriesCode = "ER_PTD_MTN",
+               SeriesName = "Average proportion of Mountain Key Biodiversity Areas (KBAs) covered by protected areas (%)",
+               'Indicator Reference Number' = "15.4.1")
+    }
+    
+    if(subset_focal == "Freshwater"){
+      output <- output %>% 
+        mutate(SeriesCode = "ER_PTD_FRHWTR",
+               SeriesName = "Average proportion of Freshwater Key Biodiversity Areas (KBAs) covered by protected areas (%)",
+               'Indicator Reference Number' = "15.1.2")
+    }
+    
+    output <- output %>% 
+      select(c("SeriesCode", "SeriesName","Indicator Reference Number", "Reference Area Code", "Ref_Area_Type", "Reference Area Name",
+               "Time Period", "Observation Value", "Unit of Measurement", "Nature of Data", "Disaggregation classification", 
+               "Time Detail [optional]", "Reporting Type", "Footnotes", "Source Detail"))
+    
+    write.csv(output,paste0("output tables ", year_run,"/",unique(output$`Indicator Reference Number`),"_",unique(output$SeriesCode),"_2.9_regional_commissions.csv" ), row.names = F)
+    
+  }
+  
 }
