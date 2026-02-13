@@ -1032,7 +1032,10 @@ summary_per_kba <- function(){
   kba_class[kba_class == "Y"] <- 1
   kba_class[kba_class == "N"] <- 0
   
-  colnames(kba_class) <- c("SitRecID",	"COUNTRY",	"ISO","WDPA_type",	"percPA", "terrestrial", "Freshwater", "marine", "mountain") #TODO check in right order for when renamed
+  kba_class <- rename(kba_class,
+                      SitRecID = siteid,
+                      COUNTRY = country,
+                      ISO = region)
   
   kba_class$`PA.Coverage`[kba_class$percPA >= 98] <- "complete"
   kba_class$`PA.Coverage`[kba_class$percPA > 2 & kba_class$percPA < 98] <- "partial"
