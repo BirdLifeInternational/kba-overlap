@@ -2031,7 +2031,7 @@ sdg_format_1 <- function(){
   
   fls <- dir(path = paste("output tables ", year_run,"/",sep = ""),pattern = "Output data for")
   
-  fls2 <- fls[grepl("R SDG|R SDG_Region|R SDG_Subregion|R Developed_Developing|R global|R LDC|R LLDC_SIDs|R Europe_NorthernAmerica_Australia_NewZealand", fls)] #TODO add needed regional groups to this
+  fls2 <- fls[grepl("ISO_SDG|R SDG_Region|R SDG_Subregion|R Developed_Developing|R global|R LDC|R LLDC_SIDs|R Europe_NorthernAmerica_Australia_NewZealand", fls)] #TODO add needed regional groups to this
   #subset to only SDG output files
   
   ## for SDG files needed for reporting:
